@@ -1,0 +1,4 @@
+-I./inc
+-I./lib/cJSON
+-xc++
+
