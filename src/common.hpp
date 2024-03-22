@@ -3,6 +3,8 @@
 
 #include <cJSON.h>
 
+#define DATABASE_PATH "data/db.json"
+
 #define HTTP_OK 200
 #define HTTP_SERVER_INTERNAL_ERROR 500
 #define HTTP_BAD_REQUEST 400

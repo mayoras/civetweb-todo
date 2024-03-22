@@ -1,4 +1,10 @@
 #include "new.hpp"
+#include "common.hpp"
+#include "database.hpp"
+#include "server.hpp"
+#include "task.hpp"
+
+#include <cJSON.h>
 #include <cstring>
 #include <string>
 
@@ -57,7 +63,41 @@ static std::string getContentType(struct mg_connection *conn) {
     return "";
 }
 
-bool NewHandler::handlePost(CivetServer *, struct mg_connection *conn) {
+bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
+                            int *status_code) {
+
+    Database *db = dynamic_cast<Server *>(server)->getDatabase();
+    std::string body;
+    cJSON *json = nullptr;
+
+    std::string title;
+    std::string desc;
+
+    Task task;
+
+    // check req body is JSON
+    const std::string contentType = getContentType(conn);
+    if (contentType.empty() || contentType != "application/json") {
+        *status_code = HTTP_BAD_REQUEST;
+        goto end;
+    }
+
+    // parse the JSON and gather task info
+    body = readBody(conn);
+    json = cJSON_Parse(body.c_str());
+
+    if (json == NULL) {
+        *status_code = HTTP_SERVER_INTERNAL_ERROR;
+        goto end;
+    }
+
+    // instantiate a new Task
+    task = Task(json);
+
+    // Save task
+    db->insertTask(task);
+end:
+    cJSON_Delete(json);
 
     return true;
 }

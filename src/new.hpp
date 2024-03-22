@@ -9,7 +9,7 @@ class NewHandler : public CivetHandler {
     // endpoint
     unsigned int request = 0;
 
-    bool handlePost(CivetServer *, struct mg_connection *conn,
+    bool handlePost(CivetServer *server, struct mg_connection *conn,
                     int *status_code);
 };
 

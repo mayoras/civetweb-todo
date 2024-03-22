@@ -1,4 +1,5 @@
 #include <CivetServer.h>
+#include <cJSON.h>
 
 #include <csignal>
 #include <iostream>
@@ -6,6 +7,9 @@
 
 #include "api.hpp"
 #include "ping.hpp"
+#include "server.hpp"
+
+#define DATABASE_PATH "data/db.json"
 
 static unsigned long request = 0;
 
@@ -30,7 +34,7 @@ int main(void) {
 
     callbacks.log_message = log_message;
 
-    CivetServer server(options, &callbacks);
+    Server server(options, &callbacks, DATABASE_PATH);
 
     // add handler for PING URI
     PingHandler h_ping;
