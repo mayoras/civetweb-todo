@@ -78,7 +78,7 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
     Database *db = dynamic_cast<Server *>(server)->getDatabase();
     std::string body;
 
-    cJSON *json = nullptr;
+    cJSON *json = NULL;
 
     std::string title;
     std::string desc;
@@ -92,8 +92,6 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
         goto end;
     }
 
-    printf(">>> Content Type checked.\n");
-
     // parse the JSON and gather task info
     body = readBody(conn);
 
@@ -101,8 +99,6 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
         mg_send_http_error(conn, HTTP_BAD_REQUEST, "Body is empty.");
         goto end;
     }
-
-    printf(">>> body checked.\n");
 
     std::cout << body << std::endl;
 
@@ -113,15 +109,15 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
         goto end;
     }
 
-    printf(">>> body parsed.\n");
-
     // instantiate a new Task
     task = Task(json);
 
     // Save task
     db->insertTask(task);
 
-    printf(">>> task inserted.\n");
+    // send successful response
+    mg_send_http_ok(conn, "text/plain", 0);
+    *status_code = HTTP_NO_CONTENT;
 end:
     cJSON_Delete(json);
     return true;

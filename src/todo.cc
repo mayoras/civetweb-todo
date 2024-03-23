@@ -10,7 +10,7 @@
 #include "ping.hpp"
 #include "server.hpp"
 
-#define DATABASE_PATH "data/db.json"
+#define DATABASE_PATH "data/example.json"
 
 static unsigned long request = 0;
 
