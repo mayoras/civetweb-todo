@@ -57,7 +57,7 @@ bool Database::insertTask(const Task &task) {
     cJSON *tasks;
     char *updatedTasks;
 
-    // parse JSON
+    // parse raw JSON
     cJSON *json = parseJSON();
 
     if (json == NULL) {
@@ -80,15 +80,16 @@ bool Database::insertTask(const Task &task) {
     // write raw JSON to file
     this->m_raw = updatedTasks;
 
+    // commit change
+    commitChanges();
+
     // free resources
-    cJSON_Delete(taskObj);
-    cJSON_Delete(tasks);
     cJSON_Delete(json);
     free(updatedTasks);
     return true;
 }
 
-bool Database::commitTasks() const {
+bool Database::commitChanges() const {
     std::fstream fs;
     if (!openFile(this->m_filepath, fs, std::fstream::out)) {
         std::cerr << "ERROR: Could not commit tasks to file "

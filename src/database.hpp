@@ -21,7 +21,7 @@ class Database {
   private:
     bool openFile(const std::string &filepath, std::fstream &fs,
                   std::fstream::openmode mode) const;
-    bool commitTasks() const;
+    bool commitChanges() const;
 };
 
 #endif /* _DATABASE_HPP */
