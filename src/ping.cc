@@ -1,7 +1,7 @@
 #include "ping.hpp"
 
-#include "cJSON.h"
 #include "common.hpp"
+#include <cJSON.h>
 
 bool PingHandler::handleGet(CivetServer *, struct mg_connection *conn) {
     // build JSON hello obj
