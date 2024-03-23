@@ -1,11 +1,14 @@
 #include "new.hpp"
+#include "civetweb.h"
 #include "common.hpp"
 #include "database.hpp"
 #include "server.hpp"
 #include "task.hpp"
 
 #include <cJSON.h>
+#include <cmath>
 #include <cstring>
+#include <iostream>
 #include <string>
 
 static std::string readBody(struct mg_connection *conn) {
@@ -40,6 +43,8 @@ static std::string readBody(struct mg_connection *conn) {
         // check if content written match the content read
         wlen = (long long)body.size() - prev_size;
         if (wlen != rlen) {
+            // remove garbage character leftovers
+            body = body.substr(0, body.length() - abs((int)(wlen - rlen)));
             break;
         }
 
@@ -66,8 +71,13 @@ static std::string getContentType(struct mg_connection *conn) {
 bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
                             int *status_code) {
 
+    const struct mg_request_info *info = mg_get_request_info(conn);
+    fprintf(stdout, "NEW Handler:\t\t%s %s\n", info->request_method,
+            info->request_uri);
+
     Database *db = dynamic_cast<Server *>(server)->getDatabase();
     std::string body;
+
     cJSON *json = nullptr;
 
     std::string title;
@@ -78,26 +88,41 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
     // check req body is JSON
     const std::string contentType = getContentType(conn);
     if (contentType.empty() || contentType != "application/json") {
-        *status_code = HTTP_BAD_REQUEST;
+        mg_send_http_error(conn, HTTP_BAD_REQUEST, "Content Type is not JSON");
         goto end;
     }
+
+    printf(">>> Content Type checked.\n");
 
     // parse the JSON and gather task info
     body = readBody(conn);
+
+    if (body.empty() || body == "" || body.length() == 0) {
+        mg_send_http_error(conn, HTTP_BAD_REQUEST, "Body is empty.");
+        goto end;
+    }
+
+    printf(">>> body checked.\n");
+
+    std::cout << body << std::endl;
+
     json = cJSON_Parse(body.c_str());
 
     if (json == NULL) {
-        *status_code = HTTP_SERVER_INTERNAL_ERROR;
+        mg_send_http_error(conn, HTTP_BAD_REQUEST, "JSON object is invalid");
         goto end;
     }
+
+    printf(">>> body parsed.\n");
 
     // instantiate a new Task
     task = Task(json);
 
     // Save task
     db->insertTask(task);
+
+    printf(">>> task inserted.\n");
 end:
     cJSON_Delete(json);
-
     return true;
 }
