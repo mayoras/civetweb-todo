@@ -19,6 +19,10 @@ else
 	LIBS+= -lcivetweb
 endif
 
+ifdef DEBUG
+	CFLAGS+= -g
+endif
+
 ifdef VERBOSE
 	CFLAGS+= -v
 endif
