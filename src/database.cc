@@ -1,5 +1,6 @@
 #include "database.hpp"
 #include "cJSON.h"
+#include "task.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -87,6 +88,48 @@ bool Database::insertTask(const Task &task) {
     cJSON_Delete(json);
     free(updatedTasks);
     return true;
+}
+
+int Database::getTaskIndex(cJSON *tasks, unsigned int id) const {
+    int numTasks = cJSON_GetArraySize(tasks);
+
+    for (int i = 0; i < numTasks; ++i) {
+        cJSON *t = cJSON_GetArrayItem(tasks, i);
+        unsigned int tId = (unsigned int)cJSON_GetObjectItem(t, "id")->valueint;
+
+        if (id == tId) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+Task *Database::findTaskById(unsigned int id) {
+    cJSON *tasks = getTasks();
+
+    if (tasks == NULL || !cJSON_IsArray(tasks)) {
+        return NULL;
+    }
+
+    int idx = getTaskIndex(tasks, id);
+
+    if (idx < 0)
+        return NULL;
+
+    cJSON *t = cJSON_GetArrayItem(tasks, idx);
+    return new Task(id, t);
+}
+
+bool Database::updateTask(unsigned int id, const Task &task) {
+    cJSON *data = parseJSON();
+    cJSON *tasks = cJSON_GetObjectItem(data, "tasks");
+    cJSON_DeleteItemFromArray(tasks, getTaskIndex(tasks, id));
+
+    // sync up the data
+    this->m_raw = cJSON_PrintUnformatted(data);
+
+    cJSON_Delete(data);
+    return insertTask(task);
 }
 
 bool Database::commitChanges() const {

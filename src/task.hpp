@@ -6,14 +6,16 @@
 
 class Task {
   private:
+    unsigned int id;
     std::string m_title;
     std::string m_description;
     bool completed;
 
   public:
     Task() = default;
-    Task(const std::string &title, const std::string &description);
-    Task(const cJSON *json);
+    Task(unsigned int id, const std::string &title,
+         const std::string &description);
+    Task(unsigned int id, const cJSON *json);
     ~Task() = default;
 
     inline const std::string &getTitle() const { return this->m_title; }

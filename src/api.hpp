@@ -8,5 +8,6 @@
 // Endpoints
 #define PING_URI "/ping"
 #define NEW_TASK_URI "/new"
+#define COMPLETE_TASK_URI "/complete"
 
 #endif /* _API_HPP */

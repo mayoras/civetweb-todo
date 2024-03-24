@@ -2,7 +2,7 @@
 TARGET=todo
 
 CXX=clang++
-SRC=$(addprefix src/, todo.cc common.cc ping.cc task.cc database.cc new.cc)
+SRC=$(addprefix src/, todo.cc common.cc ping.cc task.cc database.cc new.cc complete.cc)
 
 SRC+= $(addprefix lib/cJSON/, cJSON.cc cJSON_Utils.cc)
 

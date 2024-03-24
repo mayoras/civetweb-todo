@@ -1,32 +1,28 @@
-#include "new.hpp"
-#include "civetweb.h"
+#include "complete.hpp"
+#include "cJSON.h"
 #include "common.hpp"
 #include "database.hpp"
 #include "server.hpp"
-#include "task.hpp"
-
-#include <cJSON.h>
-#include <cmath>
-#include <cstring>
+#include <cstddef>
+#include <cstdio>
 #include <iostream>
 #include <string>
 
-bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn) {
+bool CompleteHandler::handlePut(CivetServer *server,
+                                struct mg_connection *conn) {
     const struct mg_request_info *info = mg_get_request_info(conn);
-    fprintf(stdout, "NEW Handler:\t\t%s %s\n", info->request_method,
+    fprintf(stdout, "COMPLETE Handler:\t\t%s %s\n", info->request_method,
             info->request_uri);
 
     Database *db = dynamic_cast<Server *>(server)->getDatabase();
     std::string body;
+    unsigned int taskId;
 
     cJSON *json = NULL;
     cJSON *resp_json = NULL;
+    cJSON *item = NULL;
 
-    unsigned int id = getNextId();
-    std::string title;
-    std::string desc;
-
-    Task task;
+    Task *t = nullptr;
 
     // check req body is JSON
     const std::string contentType = getContentType(conn);
@@ -37,6 +33,8 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn) {
 
     // parse the JSON and gather task info
     body = readBody(conn);
+
+    printf(">> Body read\n");
 
     if (body.empty() || body == "" || body.length() == 0) {
         mg_send_http_error(conn, HTTP_BAD_REQUEST, "Body is empty.");
@@ -50,16 +48,39 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn) {
         goto end;
     }
 
-    // add ID to JSON
-    cJSON_AddNumberToObject(json, "id", (double)id);
+    printf(">> JSON parsed\n");
 
-    // instantiate a new Task
-    task = Task(id, json);
+    // verify task id
+    item = cJSON_GetObjectItem(json, "task_id");
+    if (item == NULL) {
+        mg_send_http_error(conn, HTTP_BAD_REQUEST, "JSON object is invalid");
+        goto end;
+    }
 
-    // Save task
-    db->insertTask(task);
+    taskId = (unsigned int)cJSON_GetNumberValue(item);
 
-    // send successful response
+    std::cout << "Task ID requested is " << taskId << std::endl;
+
+    // find task by ID
+    t = db->findTaskById(taskId);
+
+    if (t == NULL) {
+        mg_send_http_error(conn, HTTP_SERVER_INTERNAL_ERROR,
+                           "Couldn't fetch task");
+        goto end;
+    }
+
+    // mark as complete
+    t->setCompleted(true);
+
+    // write to DB
+    if (!db->updateTask(taskId, *t)) {
+        mg_send_http_error(conn, HTTP_SERVER_INTERNAL_ERROR,
+                           "Couldn't update task");
+        goto end;
+    }
+
+    // return success message
     resp_json = cJSON_CreateObject();
     if (resp_json == NULL) {
         mg_send_http_error(conn, HTTP_SERVER_INTERNAL_ERROR,
@@ -67,9 +88,10 @@ bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn) {
         goto end;
     }
 
-    cJSON_AddNumberToObject(resp_json, "task_id", (double)id);
+    cJSON_AddNumberToObject(resp_json, "rows_changed", 1.0);
     sendJSON(conn, resp_json);
 end:
+    delete t;
     cJSON_Delete(json);
     return true;
 }

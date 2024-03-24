@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "api.hpp"
+#include "complete.hpp"
 #include "new.hpp"
 #include "ping.hpp"
 #include "server.hpp"
@@ -42,6 +43,10 @@ int main(void) {
     // add handler for NEW TASK URI
     NewHandler h_new;
     server.addHandler(NEW_TASK_URI, h_new);
+
+    // add handler for NEW TASK URI
+    CompleteHandler h_complete;
+    server.addHandler(COMPLETE_TASK_URI, h_complete);
 
     std::cout << "Server fired up at http://localhost:" << PORT << std::endl;
 
