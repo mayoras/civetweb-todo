@@ -68,9 +68,7 @@ static std::string getContentType(struct mg_connection *conn) {
     return "";
 }
 
-bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn,
-                            int *status_code) {
-
+bool NewHandler::handlePost(CivetServer *server, struct mg_connection *conn) {
     const struct mg_request_info *info = mg_get_request_info(conn);
     fprintf(stdout, "NEW Handler:\t\t%s %s\n", info->request_method,
             info->request_uri);

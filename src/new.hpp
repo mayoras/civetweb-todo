@@ -9,8 +9,7 @@ class NewHandler : public CivetHandler {
     // endpoint
     unsigned int nextId = 0;
 
-    bool handlePost(CivetServer *server, struct mg_connection *conn,
-                    int *status_code);
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
 
     inline unsigned int getNextId() { return this->nextId++; }
 };

@@ -12,8 +12,6 @@
 
 #define DATABASE_PATH "data/example.json"
 
-static unsigned long request = 0;
-
 volatile bool exitNow = false;
 void h_exit(int) {
     std::cout << "Preparing exit..." << '\n';

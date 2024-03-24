@@ -6,7 +6,6 @@
 
 class Task {
   private:
-    unsigned int id;
     std::string m_title;
     std::string m_description;
     bool completed;
