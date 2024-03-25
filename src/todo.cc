@@ -2,6 +2,7 @@
 #include <cJSON.h>
 
 #include <csignal>
+#include <cstdlib>
 #include <iostream>
 #include <unistd.h>
 
@@ -11,12 +12,26 @@
 #include "ping.hpp"
 #include "server.hpp"
 
-#define DATABASE_PATH "data/example.json"
+#define DEFAULT_DATABASE_PATH "data/example.json"
 
 volatile bool exitNow = false;
 void h_exit(int) {
     std::cout << "Preparing exit..." << '\n';
     exitNow = true;
+}
+
+static char *getDatabasePath() {
+    // check environment variable
+    char *env = std::getenv("CIVETWEB_DATABASE_PATH");
+
+    if (env == NULL) {
+        // fallback to default database path
+        std::cerr << "Falling back to default Database path: "
+                  << DEFAULT_DATABASE_PATH << std::endl;
+        return (char *)DEFAULT_DATABASE_PATH;
+    }
+
+    return env;
 }
 
 static int log_message(const struct mg_connection *, const char *message) {
@@ -34,7 +49,10 @@ int main(void) {
 
     callbacks.log_message = log_message;
 
-    Server server(options, &callbacks, DATABASE_PATH);
+    // get database JSON path
+    const char *databasePath = getDatabasePath();
+
+    Server server(options, &callbacks, databasePath);
 
     // add handler for PING URI
     PingHandler h_ping;
