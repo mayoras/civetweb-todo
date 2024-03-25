@@ -4,3 +4,4 @@ todo
 compile_flags.txt
 README.md
 .gitignore
+data/*.json

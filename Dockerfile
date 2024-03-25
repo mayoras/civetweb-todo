@@ -10,7 +10,7 @@ FROM alpine:3.18 AS build
 RUN apk update && \
     apk add --no-cache \
     build-base zlib-dev \
-    git make clang curl
+    git make clang curl sudo
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -21,6 +21,9 @@ RUN cd civetweb; make WITH_CPP=1 lib
 
 # copy app project
 COPY . .
+
+# initialize database
+# RUN echo "{}" > data/db.json
 
 # copy the static library to project libs
 RUN cp civetweb/libcivetweb.a lib/
@@ -51,6 +54,11 @@ USER civetweb
 
 # Copy the built application from the build stage into this stage
 COPY --chown=civetweb:civetweb --from=build /app/ /app/
+
+# Define Civetweb API env variables
+ENV CIVETWEB_DATABASE_PATH /app/data/db.json
+ENV CIVETWEB_DOCUMENT_ROOT /app/static
+ENV CIVETWEB_PORT 8080
 
 # Expose port 8080 for the application
 EXPOSE 8080
