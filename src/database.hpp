@@ -25,6 +25,7 @@ class Database {
     }
 
   private:
+    bool syncRawData();
     int getTaskIndex(cJSON *tasks, unsigned int id) const;
     bool openFile(const std::string &filepath, std::fstream &fs,
                   std::fstream::openmode mode) const;

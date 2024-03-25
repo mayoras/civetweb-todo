@@ -29,6 +29,32 @@ bool Database::openFile(const std::string &filepath, std::fstream &fs,
     return true;
 }
 
+bool Database::syncRawData() {
+    std::fstream fs;
+    if (!openFile(this->m_filepath, fs, std::fstream::in)) {
+        return false;
+    }
+
+    long fileSize = getFileSize(fs);
+    char *buffer = new char[fileSize + 1];
+
+    fs.read(buffer, fileSize);
+    if (fs) {
+        std::cout << "Synching with Database..." << std::endl;
+    } else {
+        std::cerr << "ERROR: only " << fs.gcount() << " could be read"
+                  << std::endl;
+        return false;
+    }
+    fs.close();
+
+    buffer[fileSize] = '\0';
+
+    this->m_raw = buffer;
+
+    return true;
+}
+
 Database::Database(const std::string &filepath) : m_filepath(filepath) {
 
     std::fstream fs;
@@ -57,6 +83,9 @@ bool Database::insertTask(const Task &task) {
     cJSON *taskObj;
     cJSON *tasks;
     char *updatedTasks;
+
+    // sync up raw data
+    syncRawData();
 
     // parse raw JSON
     cJSON *json = parseJSON();
@@ -105,6 +134,9 @@ int Database::getTaskIndex(cJSON *tasks, unsigned int id) const {
 }
 
 Task *Database::findTaskById(unsigned int id) {
+    // sync up raw data
+    syncRawData();
+
     cJSON *tasks = getTasks();
 
     if (tasks == NULL || !cJSON_IsArray(tasks)) {
@@ -121,6 +153,9 @@ Task *Database::findTaskById(unsigned int id) {
 }
 
 bool Database::updateTask(unsigned int id, const Task &task) {
+    // sync up raw data
+    syncRawData();
+
     cJSON *data = parseJSON();
     cJSON *tasks = cJSON_GetObjectItem(data, "tasks");
     cJSON_DeleteItemFromArray(tasks, getTaskIndex(tasks, id));
