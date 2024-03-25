@@ -2,4 +2,4 @@
 
 set -xe
 
-docker run -dt -p8080:8080 --name civetweb civetweb:1.0
+docker run -dt -p8080:80 -v $(pwd)/data:/app/data --name civetweb civetweb:1.0
