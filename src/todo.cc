@@ -2,7 +2,6 @@
 #include <cJSON.h>
 
 #include <csignal>
-#include <cstdlib>
 #include <iostream>
 #include <unistd.h>
 
@@ -12,26 +11,10 @@
 #include "ping.hpp"
 #include "server.hpp"
 
-#define DEFAULT_DATABASE_PATH "data/example.json"
-
 volatile bool exitNow = false;
 void h_exit(int) {
     std::cout << "Preparing exit..." << '\n';
     exitNow = true;
-}
-
-static char *getDatabasePath() {
-    // check environment variable
-    char *env = std::getenv("CIVETWEB_DATABASE_PATH");
-
-    if (env == NULL) {
-        // fallback to default database path
-        std::cerr << "Falling back to default Database path: "
-                  << DEFAULT_DATABASE_PATH << std::endl;
-        return (char *)DEFAULT_DATABASE_PATH;
-    }
-
-    return env;
 }
 
 static int log_message(const struct mg_connection *, const char *message) {
@@ -44,8 +27,11 @@ int main(void) {
 
     struct CivetCallbacks callbacks;
 
-    const char *options[] = {"document_root", DOCUMENT_ROOT, "listening_ports",
-                             PORT, 0};
+    const char *documentRoot = getDocumentRoot();
+    const char *port = getPort();
+
+    const char *options[] = {"document_root", documentRoot, "listening_ports",
+                             port, 0};
 
     callbacks.log_message = log_message;
 
@@ -66,7 +52,7 @@ int main(void) {
     CompleteHandler h_complete;
     server.addHandler(COMPLETE_TASK_URI, h_complete);
 
-    std::cout << "Server fired up at http://localhost:" << PORT << std::endl;
+    std::cout << "Server fired up at http://localhost:" << port << std::endl;
 
     // setup exit signal
     std::signal(SIGINT, h_exit);
