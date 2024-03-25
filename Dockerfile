@@ -4,19 +4,20 @@
 # ---------------------------------------------------
 
 # Use Alpine Linux 3.18 as the base image for the build stage
-FROM alpine:3.19 AS build
+FROM alpine:3.18 AS build
 
 # Update package list and install build dependencies
 RUN apk update && \
     apk add --no-cache \
-    build-base zlib-dev
+    build-base zlib-dev \
+    git make clang curl
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # build civetweb static library
 RUN git clone https://github.com/civetweb/civetweb.git
-RUN cd civetweb; make WITH_ALL=1 lib
+RUN cd civetweb; make WITH_CPP=1 lib
 
 # copy app project
 COPY . .
@@ -35,7 +36,7 @@ RUN make
 # ---------------------------------------------------
 
 # Use Alpine Linux 3.18 as the base image for the final stage
-FROM alpine:3.19
+FROM alpine:3.18
 
 # Update package list and install runtime dependencies
 RUN apk update && \
